@@ -49,25 +49,25 @@ def part_ii():
     # Input is valid, output step by step derivation 
     # ... along with the rule used at each step 
     def rule_1(string):
-        print("Rule: If xI is a valid string, then so is xIU")
+        print("Rule 1: If xI is a valid string, then so is xIU")
         result = string + 'U'
         print(f"Result: {result}\n")
         return result
 
     def rule_2(string):
-        print("Rule: If Mx is a valid string, then so is Mxx")
+        print("Rule 2: If Mx is a valid string, then so is Mxx")
         result = string + string[1:]
         print(f"Result: {result}\n")
         return result
 
     def rule_3(string, index):
-        print("Rule: In any valid string, III can be replaced by U")
+        print("Rule 3: In any valid string, III can be replaced by U")
         result = string[:index] + 'U' + string[index+3:]
         print(f"Result: {result}\n")
         return result
 
     def rule_4(string, index):
-        print("Rule: UU can be dropped from any valid string")
+        print("Rule 4: UU can be dropped from any valid string")
         result = string[:index] + string[index+2:]
         print(f"Result: {result}\n")
         return result
@@ -90,15 +90,18 @@ def part_ii():
 
     # Start the derivation to the number of I's needed
     derivation_string = "MI"
-    while derivation_string.count("I") < num_of_i:
+    while (derivation_string.count("I") < num_of_i) or ((derivation_string.count("I") % 3) != (num_of_i % 3)):
         derivation_string = rule_2(derivation_string)
 
-    # Compress the beginning of the derivation string to the desired miu string
+    # Make the desired miu string from the possible I's
     miu_string_length = len(miu_string)
     while derivation_string[:miu_string_length] != miu_string:
         # Get the first none matching index
         index = 0
+
+        # Iterate the miu string
         for i in range(miu_string_length):
+            # Check if the strings are the same
             if derivation_string[i] != miu_string[i]:
                 index = i
                 break
@@ -111,21 +114,20 @@ def part_ii():
     remaining_i_count = len(derivation_string[miu_string_length:])
 
     # Check if complete
-    if (remaining_i_count / 3) == 0: return
+    if remaining_i_count == 0: return
 
-    # Check if rule 1 is required
-    elif (remaining_i_count / 3) == 1:
-        derivation_string = rule_1(derivation_string)   
+    while derivation_string != miu_string:
+        # Check if rule 1 needs to be applied
+        # ... AKA we have an odd number of remaining I's
+        if ((remaining_i_count / 3) % 2) == 1 and derivation_string[-1] == "I":
+            derivation_string = rule_1(derivation_string)
 
-    # Apply rule 3 to the first three remaining I's
-    derivation_string = rule_3(derivation_string, miu_string_length)    
+        # Apply rule 3 to the last three I's
+        derivation_string = rule_3(derivation_string, len(derivation_string)-4)
 
-    # Check if rule 3 is required again
-    if (remaining_i_count / 3) == 2:
-        derivation_string = rule_3(derivation_string, miu_string_length + 1)
-
-    # Apply rule 4 to get only the miu string
-    derivation_string = rule_4(derivation_string, miu_string_length)
+        # Check if we need to apply rule 4
+        if derivation_string[-2:] == "UU":
+            derivation_string = rule_4(derivation_string, len(derivation_string)-2)
 
 def main():
     ## Part 1
