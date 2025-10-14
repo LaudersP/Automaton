@@ -48,47 +48,57 @@ class DFA_Automaton:
             if state in reachable_states: continue
 
             # Remove state
+            print(f"Removing: {state}")
             self._state_set.remove(state)
             optimized_delta.pop((state, '0'))
             optimized_delta.pop((state, '1'))
 
         # Generate all possible pair combinations
         pairs = {}
-        for state in self._state_set:
-            for pair_state in self._state_set:
-                # Skip (state, state) pairs
-                if pair_state is state: continue
+        for state_i in self._state_set:
+            for state_j in self._state_set:
+                # Skip same state pairs
+                if state_j == state_i: continue
 
                 # See if the current pair needs added
-                if (state, pair_state) not in pairs and (pair_state, state) not in pairs:
-                    # Check if one or the other are accept state
-                    if (state in self._accept_set and pair_state not in self._accept_set) or (state not in self._accept_set and pair_state in self._accept_set):
-                        pairs[(state, pair_state)] = 1
-                    else:
-                        pairs[(state, pair_state)] = 0
+                if pairs.get((state_i, state_j)) == None and pairs.get((state_j, state_i)) == None:
+                    pairs[(state_i, state_j)] = 0
+
+        # Mark pairs where one or the other are accept states
+        for (state_i, state_j), _ in pairs.items():
+            # Check if the pair contains a accept state and a non-accept state
+            if((state_i in self._accept_set) == (state_j in self._accept_set)): continue
+
+            # Mark pair for being different
+            pairs[(state_i, state_j)] = 1
+
+            # Loop until no new pairs are marked
+            while True:
+                marked_new_pair = False
+                for (state_i, state_j), pair_marked in pairs.items():
+                    # Skip already marked pairs
+                    if pair_marked: continue
+
+                    # Get the possible endings from the current pair
+                    for char in self._sigma:
+                        ending_pair = (optimized_delta[(state_i, char)], optimized_delta[(state_j, char)])
                         
-        while True:
-            marked_pair = False
-            for (state0, state1), marked in pairs.items():
-                # Check if state pair is already marked
-                if marked == 1: continue
+                        # Check if the ending pair is the same state
+                        if ending_pair[0] == ending_pair[1]: continue
 
-                # Check the destination of the pair using sigma
-                end_state = None
-                for char in self._sigma:
-                    end_state = (self._delta[(state0, char)],self._delta[(state1, char)])
-                    reversed_end_state = (end_state[1], end_state[0])
+                        # Check if the ending_pair is marked
+                        if pairs.get((ending_pair[0], ending_pair[1])) == 1 or pairs.get((ending_pair[1], ending_pair[0])) == 1:
+                            pairs[(state_i, state_j)] = 1
+                            marked_new_pair = 1
 
-                    # Check if end_state is the same state
-                    if end_state[0] is end_state[1]: continue
-                    # Check if end_state is marked
-                    if pairs[end_state] == 1:
-                        pairs[(state0, state1)] = 1
-                        marked_pair = True
+                if marked_new_pair is False:
+                    break
 
-            if marked_pair is False:
-                break
+        # Any pair unmarked are indistinct and can be combined into a single state
+        for (state_i, state_j), pair_marked in pairs.items():
+            # Skip if pair is marked
+            if pair_marked: continue
 
-            
-        print(pairs)
+            # Combine pair into a single state
+            print(f"To remove: {(state_i, state_j)}")
             
