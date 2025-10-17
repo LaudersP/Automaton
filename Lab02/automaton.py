@@ -22,7 +22,9 @@ class DFA_Automaton:
         return (current_state in self._accept_set)
     
     def optimize(self):
-        # Copy delta
+        # Copy automaton
+        optimized_state_set = self._state_set
+        optimized_accept_set = self._accept_set
         optimized_delta = self._delta
         # Get reachable states using BFS
         queue = [self._start_state]
@@ -94,11 +96,68 @@ class DFA_Automaton:
                 if marked_new_pair is False:
                     break
 
-        # Any pair unmarked are indistinct and can be combined into a single state
+        # Get unmarked pairs
+        unmarked_pairs = []
         for (state_i, state_j), pair_marked in pairs.items():
             # Skip if pair is marked
             if pair_marked: continue
 
-            # Combine pair into a single state
-            print(f"To remove: {(state_i, state_j)}")
+            unmarked_pairs.append((state_i, state_j))
+
+        # Combine unmarked pairs
+        while unmarked_pairs:
+            # Get a pair of states
+            current_pair = unmarked_pairs.pop(0)
+
+            # Check that the ending states go to the same state
+            ending_on_0 = (optimized_delta[(current_pair[0], "0")], optimized_delta[(current_pair[1], "0")])
+            ending_on_1 = (optimized_delta[(current_pair[0], "1")], optimized_delta[(current_pair[1], "1")])
+            if ending_on_0[0] != ending_on_0[1] or ending_on_1[0] != ending_on_1[1]:
+                unmarked_pairs.append(current_pair)
+                continue
+
+            # Get the index of the first state in the optimized state set
+            list_index = optimized_state_set.index(current_pair[0])
+
+            # Replace it with the new optimized state
+            optimized_state_set[list_index] = current_pair[0]+current_pair[1]
+
+            # Remove the second state from the optimized state set
+            optimized_state_set.remove(current_pair[1])
+
+            # Replace the states in the optimized accept state
+            for accept_state in optimized_accept_set:
+                # Check if it is one of the current pair states
+                if accept_state != current_pair[0] and accept_state != current_pair[1]: continue
+
+                # Check if the optimized accept state is already present
+                if current_pair[0] + current_pair[1] in optimized_accept_set: continue
+
+                # Find the index and replace it with the optimized state name
+                list_index = optimized_accept_set.index(accept_state)
+                optimized_accept_set[list_index] = current_pair[0] + current_pair[1]
+
+                # Check if the other state is a accept state
+                if current_pair[0] in optimized_accept_set:
+                    optimized_accept_set.remove(current_pair[0])
+                elif current_pair[1] in optimized_accept_set:
+                    optimized_accept_set.remove(current_pair[1])
+
+            # Remove states from optimized delta list
+            optimized_delta.pop((current_pair[0], "0"))
+            optimized_delta.pop((current_pair[0], "1"))
+            optimized_delta.pop((current_pair[1], "0"))
+            optimized_delta.pop((current_pair[1], "1"))
+
+            # Add the new combined state to delta list
+            optimized_delta[(current_pair[0] + current_pair[1], "0")] = ending_on_0[0]
+            optimized_delta[(current_pair[0] + current_pair[1], "1")] = ending_on_1[0]
             
+            # Add the transitions to prior states to delta list
+            for (state, char), end_state in optimized_delta.items():
+                # Check if end state is one of the current pair states
+                if end_state == current_pair[0] or end_state == current_pair[1]:
+                    # Set the transition to point to the new optimized state
+                    optimized_delta[(state, char)] = current_pair[0] + current_pair[1]
+
+        return (self._sigma, optimized_state_set, optimized_accept_set, self._start_state, optimized_delta)
