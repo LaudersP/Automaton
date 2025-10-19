@@ -50,4 +50,6 @@ delta = {
 automaton = DFA_Automaton(sigma, state_set, accept_set, start_state, delta)
 
 # Optimize
-automaton.optimize() 
+optimized_dfa = automaton.optimize() 
+for item in optimized_dfa:
+    print(item)
