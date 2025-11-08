@@ -246,6 +246,58 @@ def binary_to_ascii(binary):
         if current_state in accept_set:
             ascii_message += current_state
 
+    # Check if we ended in a non-accept state
+    if current_state in state_set and current_state not in accept_set:
+        state_mapping = {
+            "q0": "abcdefghijklmnopqrstuvwxyz ",
+            "q1": "abcdefghijklmnopqrstuvwxyz ",
+            "q2": " ",
+            "q3": " ",
+            "q4": " ",
+            "q5": " ",
+            "q6": " ",
+            "q7": " ",
+            "q8": "abcdefghijklmnopqrstuvwxyz",
+            "q9": "abcdefghijklmnopqrstuvwxyz",
+            "q10": "abcdefghijklmno",
+            "q11": "abcdefg",
+            "q12": "abc",
+            "q13": "a",
+            "q14": "bc",
+            "q15": "defg",
+            "q16": "de",
+            "q17": "fg",
+            "q18": "hijklmno",
+            "q19": "hijk",
+            "q20": "hi",
+            "q21": "jk",
+            "q22": "lmno",
+            "q23": "lm",
+            "q24": "no",
+            "q25": "pqrstuvwxyz",
+            "q26": "pqrstuvw",
+            "q27": "pqrs",
+            "q28": "pq",
+            "q29": "rs",
+            "q30": "tuvw",
+            "q31": "tu",
+            "q32": "vw",
+            "q33": "xyz",
+            "q34": "xyz",
+            "q35": "xy",
+            "q36": "z",
+            "T0": "ASCII Character outside of [a, ..., z, (SPACE)]",
+            "T1": "ASCII Character outside of [a, ..., z, (SPACE)]",
+            "T2": "ASCII Character outside of [a, ..., z, (SPACE)]",
+            "T3": "ASCII Character outside of [a, ..., z, (SPACE)]",
+            "T4": "ASCII Character outside of [a, ..., z, (SPACE)]",
+            "T5": "ASCII Character outside of [a, ..., z, (SPACE)]",
+            "T6": "ASCII Character outside of [a, ..., z, (SPACE)]",
+            "T7": "ASCII Character outside of [a, ..., z, (SPACE)]",
+        }
+
+        print(f"Ended with incomplete byte, possible results: {state_mapping[current_state]}")
+
     return ascii_message
 
 def main():
