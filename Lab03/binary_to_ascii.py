@@ -296,7 +296,7 @@ def binary_to_ascii(binary):
             "T7": "ASCII Character outside of [a, ..., z, (SPACE)]",
         }
 
-        print(f"Ended with incomplete byte, possible results: {state_mapping[current_state]}")
+        ascii_message += f'({state_mapping[current_state]})'
 
     return ascii_message
 
